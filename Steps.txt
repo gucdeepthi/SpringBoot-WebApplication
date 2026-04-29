@@ -33,9 +33,7 @@ apt install kubeadm=1.20.0-00 kubectl=1.20.0-00 kubelet=1.20.0-00 -y
 
 #On Master node:
 
-   kubeadm init --pod-network-cidr=192.168.0.0/16
-  
-   
+   kubeadm init --pod-network-cidr=192.168.0.0/16   
    
 # Step3: 
 
