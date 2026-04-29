@@ -1,75 +1,47 @@
 pipeline {
-    agent any
-    
-    tools {
-        jdk 'jdk11'
-        maven 'maven3'
-    }
-    
-    environment{
-        SCANNER_HOME= tool 'sonar-scanner'
+    agent { label 'ci' }
+
+    environment {
+        APP_NAME = "SpringBoot-WebApplication"
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
-        stage('Git Checkout ') {
+
+        stage('Checkout') {
             steps {
-                git branch: 'main', changelog: false, poll: false, url: 'https://github.com/jaiswaladi246/SpringBoot-WebApplication.git'
+                git branch: 'main',
+                    url: 'https://github.com/gucdeepthi/SpringBoot-WebApplication.git'
             }
         }
-        
-        stage('Code Compile') {
+
+        stage('Build & Test') {
             steps {
-                    sh "mvn compile"
+                sh '''
+                  echo "Running on CI agent"
+                  mvn clean test
+                '''
             }
         }
-        
-        stage('Run Test Cases') {
+
+        stage('Package') {
             steps {
-                    sh "mvn test"
+                sh 'mvn clean package -DskipTests'
             }
         }
-        
-        stage('Sonarqube Analysis') {
-            steps {
-                    withSonarQubeEnv('sonar-server') {
-                        sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Java-WebApp \
-                        -Dsonar.java.binaries=. \
-                        -Dsonar.projectKey=Java-WebApp '''
-    
-                }
-            }
+    }
+
+
+    post {
+        success {
+            build job: 'CD_pipeline',
+                 wait: false,
+                 parameters: [
+                    string(name: 'IMAGE_TAG', value: "${BUILD_NUMBER}")
+                    ]
+         }
+        failure {
+            echo "❌ CI failed"
         }
-        
-        stage('OWASP Dependency Check') {
-            steps {
-                   dependencyCheck additionalArguments: '--scan ./   ', odcInstallation: 'DP'
-                   dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
-        
-        stage('Maven Build') {
-            steps {
-                    sh "mvn clean compile"
-            }
-        }
-        
-        stage('Docker Build & Push') {
-            steps {
-                   script {
-                       withDockerRegistry(credentialsId: 'b289dc43-2ede-4bd0-95e8-75ca26100d8d', toolName: 'docker') {
-                            sh "docker build -t webapp ."
-                            sh "docker tag webapp adijaiswal/webapp:latest"
-                            sh "docker push adijaiswal/webapp:latest "
-                        }
-                   } 
-            }
-        }
-        
-        stage('Docker Image scan') {
-            steps {
-                    sh "trivy image adijaiswal/webapp:latest "
-            }
-        }
-        
     }
 }
