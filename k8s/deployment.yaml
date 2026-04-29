@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: springboot-app
+  name: springboot-webapplication
   labels:
-    app: springboot
+    app: springboot-webapplication
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: springboot
+      app: springboot-webapplication
   template:
     metadata:
       labels:
-        app: springboot
+        app: springboot-webapplication
     spec:
       containers:
-      - name: springboot
-        image: motoxplay/springboot-webapplication:latest
+      - name: springboot-webapplication
+        image: motoxplay/springboot-webapplication
         ports:
         - containerPort: 8080
