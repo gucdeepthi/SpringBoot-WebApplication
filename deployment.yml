@@ -19,3 +19,4 @@ spec:
         image: deepthi/xyz:tag
         ports:
         - containerPort: 8081
+        
